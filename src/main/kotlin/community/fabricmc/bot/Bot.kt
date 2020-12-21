@@ -1,7 +1,6 @@
 package community.fabricmc.bot
 
 import com.kotlindiscord.kord.extensions.ExtensibleBot
-import com.kotlindiscord.kord.extensions.utils.respond
 import com.kotlindiscord.kordex.ext.mappings.MappingsExtension
 
 @Suppress("UnderscoresInNumericLiterals")  // It's a Snowflake, really
