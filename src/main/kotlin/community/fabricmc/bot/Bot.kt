@@ -21,8 +21,6 @@ suspend fun main() {
             var result = true
 
             if (!command.startsWith("y") && event.message.channelId.value != MOD_DEV_ALT) {
-                event.message.respond("Non-Yarn commands may not be used outside of <#$MOD_DEV_ALT>.")
-
                 result = false
             }
 
