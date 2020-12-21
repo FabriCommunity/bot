@@ -1,0 +1,10 @@
+version: "3"
+services:
+  community-bot:
+    image: ghcr.io/FabriCommunity/community-bot:latest
+    container_name: community-bot
+
+    restart: always
+
+    environment:
+      - BOT_TOKEN
