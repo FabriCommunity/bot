@@ -31,6 +31,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.CR_PAT }}
 
-      - run: docker build -t ghcr.io/FabriCommunity/community-bot:latest -t ghcr.io/FabriCommunity/community-bot:${GITHUB_SHA} .
-      - run: docker push ghcr.io/FabriCommunity/community-bot:latest
-      - run: docker push ghcr.io/FabriCommunity/community-bot:${GITHUB_SHA}
+      - run: docker build -t ghcr.io/fabricommunity/community-bot:latest -t ghcr.io/fabricommunity/community-bot:${GITHUB_SHA} .
+      - run: docker push ghcr.io/fabricommunity/community-bot:latest
+      - run: docker push ghcr.io/fabricommunity/community-bot:${GITHUB_SHA}
