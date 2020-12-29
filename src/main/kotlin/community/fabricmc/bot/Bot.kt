@@ -1,7 +1,8 @@
 package community.fabricmc.bot
 
 import com.kotlindiscord.kord.extensions.ExtensibleBot
-import com.kotlindiscord.kordex.ext.mappings.MappingsExtension
+import com.kotlindiscord.kordex.ext.mappings.extMappings
+import com.kotlindiscord.kordex.ext.mappings.extMappingsCheck
 
 @Suppress("UnderscoresInNumericLiterals")  // It's a Snowflake, really
 private const val MOD_DEV_ALT = 789958205211803698L
@@ -15,7 +16,7 @@ val bot = ExtensibleBot(
 
 /** Launch function. **/
 suspend fun main() {
-    MappingsExtension.addCheck { command ->
+    bot.extMappingsCheck { command ->
         { event ->
             var result = true
 
@@ -27,7 +28,6 @@ suspend fun main() {
         }
     }
 
-    bot.addExtension(MappingsExtension::class)
-
+    bot.extMappings()
     bot.start()
 }
