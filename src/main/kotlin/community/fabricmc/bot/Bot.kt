@@ -2,7 +2,6 @@ package community.fabricmc.bot
 
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import com.kotlindiscord.kordex.ext.mappings.extMappings
-import com.kotlindiscord.kordex.ext.mappings.extMappingsCheck
 import com.kotlindiscord.kordex.ext.mappings.extMappingsNamespaceCheck
 import me.shedaniel.linkie.namespaces.YarnNamespace
 
