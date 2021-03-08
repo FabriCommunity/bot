@@ -48,8 +48,8 @@ repositories {
 
 dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.3")
-    implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.4.0-RC6")
-    implementation("com.kotlindiscord.kordex.ext.mappings:ext-mappings:1.1.0-RC3")
+    implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.4.0-RC7")
+    implementation("com.kotlindiscord.kordex.ext.mappings:ext-mappings:1.1.0-RC4")
     implementation("com.uchuhimo:konf:0.23.0")
     implementation("com.uchuhimo:konf-toml:0.23.0")
     implementation("io.github.microutils:kotlin-logging:2.0.3")
