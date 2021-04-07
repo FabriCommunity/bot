@@ -103,7 +103,7 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
 
                 action {
                     ack {
-                        content = "**FabriComm Showcase Publishing**\n\n"
+                        content = "**__FabriComm Showcase Publishing__**\n\n"
 
                         content += "The publishing commands allow you, as a staff member on an allow-listed server, " +
                                 "to publish your Fabric-related project updates to the FabriComm showcase channels " +
@@ -116,10 +116,15 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                         content += "**3)** Use the command parameters to specify an earlier message, or to prevent " +
                                 "the bot from publishing the message to any following channels, if required.\n\n"
 
-                        content += "**Please note:** Your message will be published using a webhook. This means that " +
-                                "Markdown links will work!\n\n"
+                        content += "That's all there is to it. If you need any help with the bot, please let us " +
+                                "know!\n\n"
 
-                        content += "That's all there is to it. If you need any help with the bot, please let us know!"
+                        content += "**__Notes__**\n\n"
+
+                        content += "If you'd like the bot to publish messages to any following channels " +
+                                "automatically, be sure to give it both the `Send Messages` and `Manage Messages` " +
+                                "permissions in the announcements channel you're using. This means you'll be able " +
+                                "to click two fewer buttons when publishing!"
 
                         flags = EPHEMERAL
                     }
