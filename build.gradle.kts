@@ -13,7 +13,8 @@ plugins {
     application
     `maven-publish`
 
-    kotlin("jvm") version "1.4.10"
+    kotlin("jvm") version "1.4.32"
+    kotlin("plugin.serialization") version "1.4.32"
 
     id("com.github.johnrengelman.shadow") version "5.2.0"
     id("io.gitlab.arturbosch.detekt") version "1.13.1"
@@ -48,8 +49,6 @@ repositories {
 
 dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.3")
-    implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.4.0-RC7")
-    implementation("com.kotlindiscord.kordex.ext.mappings:ext-mappings:1.1.0-RC4")
     implementation("com.uchuhimo:konf:0.23.0")
     implementation("com.uchuhimo:konf-toml:0.23.0")
     implementation("io.github.microutils:kotlin-logging:2.0.3")
@@ -57,12 +56,21 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+
+    implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.4.0-20210407.135501-88")
+
+    implementation("com.kotlindiscord.kordex.ext.common:ext-common:1.0.0-SNAPSHOT")
+    implementation("com.kotlindiscord.kordex.ext.mappings:ext-mappings:1.1.0-SNAPSHOT")
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "11"
 
     kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+
+    kotlinOptions {
+        useIR = true
+    }
 }
 
 application {

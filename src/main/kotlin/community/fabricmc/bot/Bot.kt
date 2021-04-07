@@ -1,28 +1,30 @@
 package community.fabricmc.bot
 
 import com.kotlindiscord.kord.extensions.ExtensibleBot
+import com.kotlindiscord.kord.extensions.checks.inGuild
+import com.kotlindiscord.kord.extensions.utils.module
 import com.kotlindiscord.kordex.ext.mappings.extMappings
+import community.fabricmc.bot.config.BotConfig
+import community.fabricmc.bot.extensions.FollowExtension
 import me.shedaniel.linkie.namespaces.YarnNamespace
-
-@Suppress("UnderscoresInNumericLiterals")  // It's a Snowflake, really
-private const val MOD_DEV_ALT = 789958205211803698L
+import org.koin.dsl.bind
 
 /** Launch function. **/
 suspend fun main() {
-    val bot = ExtensibleBot(System.getenv("BOT_TOKEN")) {
-        commands {
-            defaultPrefix = "?"
-        }
+    val config = BotConfig()
 
+    val bot = ExtensibleBot(config.botToken) {
         extensions {
             sentry = false
+
+            add(::FollowExtension)
 
             extMappings {
                 namespaceCheck { namespace ->
                     { event ->
                         var result = true
 
-                        if (namespace != YarnNamespace && event.message.channelId.value != MOD_DEV_ALT) {
+                        if (namespace != YarnNamespace && event.message.channelId != config.channelModDevAlt) {
                             result = false
                         }
 
@@ -30,6 +32,24 @@ suspend fun main() {
                     }
                 }
             }
+        }
+
+        hooks {
+            afterKoinCreated {
+                koin.module {
+                    single { config } bind BotConfig::class
+                }
+            }
+        }
+
+        messageCommands {
+            defaultPrefix = "?"
+
+            check(inGuild(config.botGuild))
+        }
+
+        slashCommands {
+            enabled = true
         }
     }
 
