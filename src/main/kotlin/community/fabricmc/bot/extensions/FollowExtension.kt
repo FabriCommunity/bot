@@ -116,7 +116,7 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                         content += "**3)** Use the command parameters to specify an earlier message, or to prevent " +
                                 "the bot from publishing the message to any following channels, if required.\n\n"
 
-                        content += "**Please note:** Your message will be published using a webhook. This means that" +
+                        content += "**Please note:** Your message will be published using a webhook. This means that " +
                                 "Markdown links will work!\n\n"
 
                         content += "That's all there is to it. If you need any help with the bot, please let us know!"
