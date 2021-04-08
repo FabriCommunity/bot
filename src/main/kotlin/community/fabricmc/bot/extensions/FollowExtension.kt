@@ -9,6 +9,7 @@ import com.kotlindiscord.kord.extensions.commands.slash.EPHEMERAL
 import com.kotlindiscord.kord.extensions.commands.slash.SlashCommandContext
 import com.kotlindiscord.kord.extensions.extensions.KoinExtension
 import com.kotlindiscord.kord.extensions.utils.ensureWebhook
+import com.kotlindiscord.kord.extensions.utils.getUrl
 import com.kotlindiscord.kord.extensions.utils.hasRole
 import community.fabricmc.bot.config.BotConfig
 import community.fabricmc.bot.data.FollowData
@@ -187,7 +188,7 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                     val targetChannel = config.getReleasesChannel(bot)!!
                     val webhook = ensureWebhook(targetChannel, "Showcase Publishing", logo = null)
 
-                    webhook.execute(webhook.token!!) {
+                    val sentMessage = webhook.execute(webhook.token!!) {
                         this.avatarUrl = guild!!.getIconUrl(Image.Format.PNG)
                         this.username = guild!!.name
 
@@ -228,13 +229,18 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                         acked = true
                     }
 
+                    val author = if (message.webhookId != null) {
+                        "Webhook (`${message.webhookId}`)"
+                    } else {
+                        "${message.author!!.mention} (`${message.author!!.id.value}` / `${message.author!!.tag}`)"
+                    }
+
                     logAction(
                         "Message Published",
 
-                        "Message published to ${targetChannel.mention}\n\n" +
+                        "Message [published](${sentMessage.getUrl()}) to ${targetChannel.mention}\n\n" +
 
-                                "**Author:** ${message.author!!.mention} (`${message.author!!.id.value}` / " +
-                                "`${message.author!!.tag}`)\n" +
+                                "**Author:** $author\n" +
 
                                 "**Published By:** ${member!!.mention} (`${member!!.id.value}` / " +
                                 "`${member!!.asMember().tag}`)\n" +
@@ -305,7 +311,7 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                     val targetChannel = config.getShowcaseChannel(bot)!!
                     val webhook = ensureWebhook(targetChannel, "Showcase Publishing", logo = null)
 
-                    webhook.execute(webhook.token!!) {
+                    val sentMessage = webhook.execute(webhook.token!!) {
                         this.avatarUrl = guild!!.getIconUrl(Image.Format.PNG)
                         this.username = guild!!.name
 
@@ -346,13 +352,18 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                         acked = true
                     }
 
+                    val author = if (message.webhookId != null) {
+                        "Webhook (`${message.webhookId}`)"
+                    } else {
+                        "${message.author!!.mention} (`${message.author!!.id.value}` / `${message.author!!.tag}`)"
+                    }
+
                     logAction(
                         "Message Published",
 
-                        "Message published to ${targetChannel.mention}\n\n" +
+                        "Message [published](${sentMessage.getUrl()}) to ${targetChannel.mention}\n\n" +
 
-                                "**Author:** ${message.author!!.mention} (`${message.author!!.id.value}` / " +
-                                "`${message.author!!.tag}`)\n" +
+                                "**Author:** $author\n" +
 
                                 "**Published By:** ${member!!.mention} (`${member!!.id.value}` / " +
                                 "`${member!!.asMember().tag}`)\n" +
@@ -423,7 +434,7 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                     val targetChannel = config.getUpdatesChannel(bot)!!
                     val webhook = ensureWebhook(targetChannel, "Showcase Publishing", logo = null)
 
-                    webhook.execute(webhook.token!!) {
+                    val sentMessage = webhook.execute(webhook.token!!) {
                         this.avatarUrl = guild!!.getIconUrl(Image.Format.PNG)
                         this.username = guild!!.name
 
@@ -464,13 +475,18 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                         acked = true
                     }
 
+                    val author = if (message.webhookId != null) {
+                        "Webhook (`${message.webhookId}`)"
+                    } else {
+                        "${message.author!!.mention} (`${message.author!!.id.value}` / `${message.author!!.tag}`)"
+                    }
+
                     logAction(
                         "Message Published",
 
-                        "Message published to ${targetChannel.mention}\n\n" +
+                        "Message [published](${sentMessage.getUrl()}) to ${targetChannel.mention}\n\n" +
 
-                                "**Author:** ${message.author!!.mention} (`${message.author!!.id.value}` / " +
-                                "`${message.author!!.tag}`)\n" +
+                                "**Author:** $author\n" +
 
                                 "**Published By:** ${member!!.mention} (`${member!!.id.value}` / " +
                                 "`${member!!.asMember().tag}`)\n" +
