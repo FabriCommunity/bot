@@ -27,6 +27,7 @@ class BotConfig : TomlConfig(
     val channelLogs: Snowflake get() = Snowflake(config[ChannelsSpec.logs])
     val channelModDevAlt: Snowflake get() = Snowflake(config[ChannelsSpec.modDevAlt])
     val channelReleases: Snowflake get() = Snowflake(config[ChannelsSpec.releases])
+    val channelShowcase: Snowflake get() = Snowflake(config[ChannelsSpec.showcase])
     val channelUpdates: Snowflake get() = Snowflake(config[ChannelsSpec.updates])
 
     val rolesAdmin: Snowflake get() = Snowflake(config[RolesSpec.admin])
@@ -41,6 +42,9 @@ class BotConfig : TomlConfig(
 
     suspend fun getReleasesChannel(bot: ExtensibleBot): GuildMessageChannel? =
         getGuild(bot)?.getChannelOf(channelReleases)
+
+    suspend fun getShowcaseChannel(bot: ExtensibleBot): GuildMessageChannel? =
+        getGuild(bot)?.getChannelOf(channelShowcase)
 
     suspend fun getUpdatesChannel(bot: ExtensibleBot): GuildMessageChannel? =
         getGuild(bot)?.getChannelOf(channelUpdates)

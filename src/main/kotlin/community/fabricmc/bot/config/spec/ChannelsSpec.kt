@@ -4,6 +4,7 @@ import com.uchuhimo.konf.ConfigSpec
 
 object ChannelsSpec : ConfigSpec() {
     val releases by required<Long>()
+    val showcase by required<Long>()
     val updates by required<Long>()
 
     val logs by required<Long>()

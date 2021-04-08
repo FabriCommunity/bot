@@ -192,6 +192,128 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                         this.username = guild!!.name
 
                         content = message.content
+
+                        message.embeds.filter { allNull(it.provider, it.video, it.url) }.forEach {
+                            embed { it.apply(this) }
+                        }
+                    }
+
+                    if (channelObj is NewsChannel && arguments.publish) {
+                        @Suppress("TooGenericExceptionCaught")
+                        try {
+                            message.publish()
+
+                            interactionResponse?.edit {
+                                content = "Message published to ${targetChannel.mention}. Thanks!"
+                                flags = EPHEMERAL
+                            }
+
+                            acked = true
+                        } catch (e: Exception) {
+                            interactionResponse?.edit {
+                                content = "Message published to ${targetChannel.mention}, but the bot was unable to " +
+                                        "publish it to the following channels. Please check the bot's permissions, " +
+                                        "and try publishing it yourself!"
+                                flags = EPHEMERAL
+                            }
+
+                            acked = true
+                        }
+                    } else {
+                        interactionResponse?.edit {
+                            content = "Message published to ${targetChannel.mention}. Thanks!"
+                            flags = EPHEMERAL
+                        }
+
+                        acked = true
+                    }
+
+                    logAction(
+                        "Message Published",
+
+                        "Message published to ${targetChannel.mention}\n\n" +
+
+                                "**Author:** ${message.author!!.mention} (`${message.author!!.id.value}` / " +
+                                "`${message.author!!.tag}`)\n" +
+
+                                "**Published By:** ${member!!.mention} (`${member!!.id.value}` / " +
+                                "`${member!!.asMember().tag}`)\n" +
+
+                                "**Source Channel:** ${channelObj.mention} (`${channelObj.id.value}` / " +
+                                "`#${channelObj.name})`\n" +
+
+                                "**Source Server:** ${guild!!.name} (`${guild!!.id.value}`)\n" +
+                                "**Message:** ${message.content.length} characters.",
+                        GREEN
+                    )
+                }
+            }
+
+            subCommand(::PublishArgs) {
+                name = "showcase"
+                description = "Publish a message to the showcase channel."
+
+                action {
+                    if (channel !is GuildMessageChannel) {
+                        interactionResponse?.edit {
+                            content = "This command may only be run on a server."
+                            flags = EPHEMERAL
+                        }
+
+                        acked = true
+
+                        return@action
+                    }
+
+                    if (!data.hasServer(guild!!)) {
+                        interactionResponse?.edit {
+                            content = "This command may only be run on an allow-listed server."
+                            flags = EPHEMERAL
+                        }
+
+                        acked = true
+
+                        return@action
+                    }
+
+                    val channelObj = if (arguments.message != null) {
+                        arguments.message!!.channel.asChannel() as GuildMessageChannel
+                    } else {
+                        channel as GuildMessageChannel
+                    }
+
+                    if (!hasManageMessages(channelObj)) {
+                        interactionResponse?.edit {
+                            content =
+                                "You don't have permission to run this command. In order to publish messages, you" +
+                                        "must have the `Manage Messages` permission on this server, or in the " +
+                                        "channel you're publishing the message from."
+                            flags = EPHEMERAL
+                        }
+
+                        acked = true
+
+                        return@action
+                    }
+
+                    val message = if (arguments.message != null) {
+                        arguments.message!!
+                    } else {
+                        channelObj.getLastMessage()!!
+                    }
+
+                    val targetChannel = config.getShowcaseChannel(bot)!!
+                    val webhook = ensureWebhook(targetChannel, "Showcase Publishing", logo = null)
+
+                    webhook.execute(webhook.token!!) {
+                        this.avatarUrl = guild!!.getIconUrl(Image.Format.PNG)
+                        this.username = guild!!.name
+
+                        content = message.content
+
+                        message.embeds.filter { allNull(it.provider, it.video, it.url) }.forEach {
+                            embed { it.apply(this) }
+                        }
                     }
 
                     if (channelObj is NewsChannel && arguments.publish) {
@@ -306,6 +428,10 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                         this.username = guild!!.name
 
                         content = message.content
+
+                        message.embeds.filter { allNull(it.provider, it.video, it.url) }.forEach {
+                            embed { it.apply(this) }
+                        }
                     }
 
                     if (channelObj is NewsChannel && arguments.publish) {
@@ -527,6 +653,8 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
             }
         }
     }
+
+    private fun allNull(vararg objects: Any?): Boolean = objects.filterNotNull().isEmpty()
 
     private suspend fun logAction(title: String, description: String, colour: Color) {
         val channel = config.getLogsChannel(bot)
