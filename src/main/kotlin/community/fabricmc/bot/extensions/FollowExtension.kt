@@ -5,7 +5,6 @@ package community.fabricmc.bot.extensions
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import com.kotlindiscord.kord.extensions.commands.converters.*
 import com.kotlindiscord.kord.extensions.commands.parser.Arguments
-import com.kotlindiscord.kord.extensions.commands.slash.EPHEMERAL
 import com.kotlindiscord.kord.extensions.commands.slash.SlashCommandContext
 import com.kotlindiscord.kord.extensions.extensions.KoinExtension
 import com.kotlindiscord.kord.extensions.utils.ensureWebhook
@@ -17,7 +16,6 @@ import dev.kord.common.Color
 import dev.kord.common.annotation.KordPreview
 import dev.kord.common.entity.Permission
 import dev.kord.core.behavior.channel.createEmbed
-import dev.kord.core.behavior.edit
 import dev.kord.core.behavior.execute
 import dev.kord.core.entity.channel.GuildMessageChannel
 import dev.kord.core.entity.channel.NewsChannel
@@ -100,35 +98,31 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                 name = "help"
                 description = "Learn about how publishing works."
 
-                autoAck = false
-
                 action {
-                    ack {
-                        content = "**__FabriComm Showcase Publishing__**\n\n"
+                    ephemeralFollowUp(
+                        "**__FabriComm Showcase Publishing__**\n\n" +
 
-                        content += "The publishing commands allow you, as a staff member on an allow-listed server, " +
+                                "The publishing commands allow you, as a staff member on an allow-listed server, " +
                                 "to publish your Fabric-related project updates to the FabriComm showcase channels " +
-                                "easily.\n\n"
+                                "easily.\n\n" +
 
-                        content += "**1)** Create and post your message in a channel you have the `Manage Messages` " +
-                                "permission in.\n"
-                        content += "**2)** Type `/publish release`, `/publish showcase` or `/publish update`, " +
-                                "depending on the channel that best suits your post.\n"
-                        content += "**3)** Use the command parameters to specify an earlier message, or to prevent " +
-                                "the bot from publishing the message to any following channels, if required.\n\n"
+                                "**1)** Create and post your message in a channel you have the `Manage Messages` " +
+                                "permission in.\n" +
+                                "**2)** Type `/publish release`, `/publish showcase` or `/publish update`, " +
+                                "depending on the channel that best suits your post.\n" +
+                                "**3)** Use the command parameters to specify an earlier message, or to prevent " +
+                                "the bot from publishing the message to any following channels, if required.\n\n" +
 
-                        content += "That's all there is to it. If you need any help with the bot, please let us " +
-                                "know!\n\n"
+                                "That's all there is to it. If you need any help with the bot, please let us " +
+                                "know!\n\n" +
 
-                        content += "**__Notes__**\n\n"
+                                "**__Notes__**\n\n" +
 
-                        content += "If you'd like the bot to publish messages to any following channels " +
+                                "If you'd like the bot to publish messages to any following channels " +
                                 "automatically, be sure to give it both the `Send Messages` and `Manage Messages` " +
                                 "permissions in the announcements channel you're using. This means you'll be able " +
                                 "to click two fewer buttons when publishing!"
-
-                        flags = EPHEMERAL
-                    }
+                    )
                 }
             }
 
@@ -138,23 +132,13 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
 
                 action {
                     if (channel !is GuildMessageChannel) {
-                        interactionResponse?.edit {
-                            content = "This command may only be run on a server."
-                            flags = EPHEMERAL
-                        }
-
-                        acked = true
+                        ephemeralFollowUp("This command may only be run on a server.")
 
                         return@action
                     }
 
                     if (!data.hasServer(guild!!)) {
-                        interactionResponse?.edit {
-                            content = "This command may only be run on an allow-listed server."
-                            flags = EPHEMERAL
-                        }
-
-                        acked = true
+                        ephemeralFollowUp("This command may only be run on an allow-listed server.")
 
                         return@action
                     }
@@ -166,15 +150,11 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                     }
 
                     if (!hasManageMessages(channelObj)) {
-                        interactionResponse?.edit {
-                            content =
-                                "You don't have permission to run this command. In order to publish messages, you" +
-                                        "must have the `Manage Messages` permission on this server, or in the " +
-                                        "channel you're publishing the message from."
-                            flags = EPHEMERAL
-                        }
-
-                        acked = true
+                        ephemeralFollowUp(
+                            "You don't have permission to run this command. In order to publish messages, you" +
+                                    "must have the `Manage Messages` permission on this server, or in the " +
+                                    "channel you're publishing the message from."
+                        )
 
                         return@action
                     }
@@ -194,7 +174,7 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
 
                         content = message.content
 
-                        message.embeds.filter { allNull(it.provider, it.video, it.url) }.forEach {
+                        message.embeds.filter { allNull(it.provider, it.video) }.forEach {
                             embed { it.apply(this) }
                         }
                     }
@@ -204,29 +184,20 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                         try {
                             message.publish()
 
-                            interactionResponse?.edit {
-                                content = "Message published to ${targetChannel.mention}. Thanks!"
-                                flags = EPHEMERAL
-                            }
-
-                            acked = true
+                            ephemeralFollowUp(
+                                "Message published to ${targetChannel.mention}. Thanks!"
+                            )
                         } catch (e: Exception) {
-                            interactionResponse?.edit {
-                                content = "Message published to ${targetChannel.mention}, but the bot was unable to " +
+                            ephemeralFollowUp(
+                                "Message published to ${targetChannel.mention}, but the bot was unable to " +
                                         "publish it to the following channels. Please check the bot's permissions, " +
                                         "and try publishing it yourself!"
-                                flags = EPHEMERAL
-                            }
-
-                            acked = true
+                            )
                         }
                     } else {
-                        interactionResponse?.edit {
-                            content = "Message published to ${targetChannel.mention}. Thanks!"
-                            flags = EPHEMERAL
-                        }
-
-                        acked = true
+                        ephemeralFollowUp(
+                            "Message published to ${targetChannel.mention}. Thanks!"
+                        )
                     }
 
                     val author = if (message.webhookId != null) {
@@ -261,23 +232,13 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
 
                 action {
                     if (channel !is GuildMessageChannel) {
-                        interactionResponse?.edit {
-                            content = "This command may only be run on a server."
-                            flags = EPHEMERAL
-                        }
-
-                        acked = true
+                        ephemeralFollowUp("This command may only be run on a server.")
 
                         return@action
                     }
 
                     if (!data.hasServer(guild!!)) {
-                        interactionResponse?.edit {
-                            content = "This command may only be run on an allow-listed server."
-                            flags = EPHEMERAL
-                        }
-
-                        acked = true
+                        ephemeralFollowUp("This command may only be run on an allow-listed server.")
 
                         return@action
                     }
@@ -289,15 +250,11 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                     }
 
                     if (!hasManageMessages(channelObj)) {
-                        interactionResponse?.edit {
-                            content =
-                                "You don't have permission to run this command. In order to publish messages, you" +
-                                        "must have the `Manage Messages` permission on this server, or in the " +
-                                        "channel you're publishing the message from."
-                            flags = EPHEMERAL
-                        }
-
-                        acked = true
+                        ephemeralFollowUp(
+                            "You don't have permission to run this command. In order to publish messages, you" +
+                                    "must have the `Manage Messages` permission on this server, or in the " +
+                                    "channel you're publishing the message from."
+                        )
 
                         return@action
                     }
@@ -317,7 +274,7 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
 
                         content = message.content
 
-                        message.embeds.filter { allNull(it.provider, it.video, it.url) }.forEach {
+                        message.embeds.filter { allNull(it.provider, it.video) }.forEach {
                             embed { it.apply(this) }
                         }
                     }
@@ -327,29 +284,20 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                         try {
                             message.publish()
 
-                            interactionResponse?.edit {
-                                content = "Message published to ${targetChannel.mention}. Thanks!"
-                                flags = EPHEMERAL
-                            }
-
-                            acked = true
+                            ephemeralFollowUp(
+                                "Message published to ${targetChannel.mention}. Thanks!"
+                            )
                         } catch (e: Exception) {
-                            interactionResponse?.edit {
-                                content = "Message published to ${targetChannel.mention}, but the bot was unable to " +
+                            ephemeralFollowUp(
+                                "Message published to ${targetChannel.mention}, but the bot was unable to " +
                                         "publish it to the following channels. Please check the bot's permissions, " +
                                         "and try publishing it yourself!"
-                                flags = EPHEMERAL
-                            }
-
-                            acked = true
+                            )
                         }
                     } else {
-                        interactionResponse?.edit {
-                            content = "Message published to ${targetChannel.mention}. Thanks!"
-                            flags = EPHEMERAL
-                        }
-
-                        acked = true
+                        ephemeralFollowUp(
+                            "Message published to ${targetChannel.mention}. Thanks!"
+                        )
                     }
 
                     val author = if (message.webhookId != null) {
@@ -384,23 +332,13 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
 
                 action {
                     if (channel !is GuildMessageChannel) {
-                        interactionResponse?.edit {
-                            content = "This command may only be run on a server."
-                            flags = EPHEMERAL
-                        }
-
-                        acked = true
+                        ephemeralFollowUp("This command may only be run on a server.")
 
                         return@action
                     }
 
                     if (!data.hasServer(guild!!)) {
-                        interactionResponse?.edit {
-                            content = "This command may only be run on an allow-listed server."
-                            flags = EPHEMERAL
-                        }
-
-                        acked = true
+                        ephemeralFollowUp("This command may only be run on an allow-listed server.")
 
                         return@action
                     }
@@ -412,15 +350,11 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                     }
 
                     if (!hasManageMessages(channelObj)) {
-                        interactionResponse?.edit {
-                            content =
-                                "You don't have permission to run this command. In order to publish messages, you" +
-                                        "must have the `Manage Messages` permission on this server, or in the " +
-                                        "channel you're publishing the message from."
-                            flags = EPHEMERAL
-                        }
-
-                        acked = true
+                        ephemeralFollowUp(
+                            "You don't have permission to run this command. In order to publish messages, you" +
+                                    "must have the `Manage Messages` permission on this server, or in the " +
+                                    "channel you're publishing the message from."
+                        )
 
                         return@action
                     }
@@ -440,7 +374,7 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
 
                         content = message.content
 
-                        message.embeds.filter { allNull(it.provider, it.video, it.url) }.forEach {
+                        message.embeds.filter { allNull(it.provider, it.video) }.forEach {
                             embed { it.apply(this) }
                         }
                     }
@@ -450,29 +384,20 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                         try {
                             message.publish()
 
-                            interactionResponse?.edit {
-                                content = "Message published to ${targetChannel.mention}. Thanks!"
-                                flags = EPHEMERAL
-                            }
-
-                            acked = true
+                            ephemeralFollowUp(
+                                "Message published to ${targetChannel.mention}. Thanks!"
+                            )
                         } catch (e: Exception) {
-                            interactionResponse?.edit {
-                                content = "Message published to ${targetChannel.mention}, but the bot was unable to " +
+                            ephemeralFollowUp(
+                                "Message published to ${targetChannel.mention}, but the bot was unable to " +
                                         "publish it to the following channels. Please check the bot's permissions, " +
                                         "and try publishing it yourself!"
-                                flags = EPHEMERAL
-                            }
-
-                            acked = true
+                            )
                         }
                     } else {
-                        interactionResponse?.edit {
-                            content = "Message published to ${targetChannel.mention}. Thanks!"
-                            flags = EPHEMERAL
-                        }
-
-                        acked = true
+                        ephemeralFollowUp(
+                            "Message published to ${targetChannel.mention}. Thanks!"
+                        )
                     }
 
                     val author = if (message.webhookId != null) {
@@ -512,23 +437,15 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                 name = "allow"
                 description = "Allow a server to publish to the showcase channels"
 
-                autoAck = false
-
                 action {
                     if (!hasAdmin()) {
-                        ack {
-                            content = "You don't have permission to run this command."
-                            flags = EPHEMERAL
-                        }
+                        ephemeralFollowUp("You don't have permission to run this command.")
 
                         return@action
                     }
 
                     if (arguments.serverId == config.botGuild) {
-                        ack {
-                            content = "You can't allow or deny publishing on the main server."
-                            flags = EPHEMERAL
-                        }
+                        ephemeralFollowUp("You can't allow or deny publishing on the main server.")
 
                         return@action
                     }
@@ -536,21 +453,19 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                     val existingServer = data.getServer(arguments.serverId)
 
                     if (existingServer != null) {
-                        ack {
-                            content = "Server with ID `${existingServer.id.value}` is already allowed: " +
+                        ephemeralFollowUp(
+                            "Server with ID `${existingServer.id.value}` is already allowed: " +
                                     "`${existingServer.name ?: "No name"}`"
-                            flags = EPHEMERAL
-                        }
+                        )
 
                         return@action
                     }
 
                     data.addServer(arguments.serverId, arguments.name)
 
-                    ack {
-                        content = "Server allowed: `${arguments.serverId.value}` / `${arguments.name}`"
-                        flags = EPHEMERAL
-                    }
+                    ephemeralFollowUp(
+                        "Server allowed: `${arguments.serverId.value}` / `${arguments.name}`"
+                    )
 
                     logAction(
                         "Server Allowed",
@@ -564,23 +479,15 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                 name = "deny"
                 description = "Deny an allowed server from publishing to the showcase channels"
 
-                autoAck = false
-
                 action {
                     if (!hasAdmin()) {
-                        ack {
-                            content = "You don't have permission to run this command."
-                            flags = EPHEMERAL
-                        }
+                        ephemeralFollowUp("You don't have permission to run this command.")
 
                         return@action
                     }
 
                     if (arguments.serverId == config.botGuild) {
-                        ack {
-                            content = "You can't allow or deny publishing on the main server."
-                            flags = EPHEMERAL
-                        }
+                        ephemeralFollowUp("You can't allow or deny publishing on the main server.")
 
                         return@action
                     }
@@ -588,10 +495,9 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                     val existingServer = data.getServer(arguments.serverId)
 
                     if (existingServer == null) {
-                        ack {
-                            content = "Server with ID `${arguments.serverId.value}` is not allowed to publish."
-                            flags = EPHEMERAL
-                        }
+                        ephemeralFollowUp(
+                            "Server with ID `${arguments.serverId.value}` is not allowed to publish."
+                        )
 
                         return@action
                     }
@@ -599,11 +505,10 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                     data.removeServer(arguments.serverId)
                     bot.kord.getGuild(arguments.serverId)?.leave()  // Leave the guild if we're on it
 
-                    ack {
-                        content = "Server no longer allowed: `${existingServer.id.value}` / " +
+                    ephemeralFollowUp(
+                        "Server no longer allowed: `${existingServer.id.value}` / " +
                                 "`${existingServer.name ?: "No name"}`"
-                        flags = EPHEMERAL
-                    }
+                    )
 
                     logAction(
                         "Server Disallowed",
@@ -618,14 +523,11 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                 name = "list"
                 description = "List all the servers that are allowed to publish to the showcase channels"
 
-                autoAck = false
-
                 action {
                     if (!hasAdmin()) {
-                        ack {
-                            content = "You don't have permission to run this command."
-                            flags = EPHEMERAL
-                        }
+                        ephemeralFollowUp(
+                            "You don't have permission to run this command."
+                        )
 
                         return@action
                     }
@@ -633,10 +535,9 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                     val servers = data.getServers()
 
                     if (servers.isEmpty()) {
-                        ack {
-                            content = "No servers are allowed to publish."
-                            flags = EPHEMERAL
-                        }
+                        ephemeralFollowUp(
+                            "No servers are allowed to publish."
+                        )
 
                         return@action
                     }
@@ -646,25 +547,21 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
                     val page = (arguments.page ?: 1) - 1
 
                     if (page < 0 || page >= chunks.size) {
-                        ack {
-                            content = "Invalid page: Must be a number from 1 to ${chunks.size}"
-                            flags = EPHEMERAL
-                        }
+                        ephemeralFollowUp(
+                            "Invalid page: Must be a number from 1 to ${chunks.size}"
+                        )
 
                         return@action
                     }
+                    ephemeralFollowUp(
+                        "**__Allowed servers: ${servers.size}__**\n\n" +
 
-                    ack {
-                        content = "**__Allowed servers: ${servers.size}__**\n\n"
+                                chunks[page].joinToString("\n") {
+                                    "`${it.id.value}` **=>** ${it.name}"
+                                } + "\n\n" +
 
-                        content += chunks[page].joinToString("\n") {
-                            "`${it.id.value}` **=>** ${it.name}"
-                        }
-
-                        content += "\n\n**Page:** ${page + 1} / ${chunks.size}"
-
-                        flags = EPHEMERAL
-                    }
+                                "**Page:** ${page + 1} / ${chunks.size}"
+                    )
                 }
             }
         }

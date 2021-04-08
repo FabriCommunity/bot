@@ -57,7 +57,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 
-    implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.4.0-20210407.135501-88")
+    implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.4.0-20210408.210506-93")
 
     implementation("com.kotlindiscord.kordex.ext.common:ext-common:1.0.0-SNAPSHOT")
     implementation("com.kotlindiscord.kordex.ext.mappings:ext-mappings:1.1.0-SNAPSHOT")
