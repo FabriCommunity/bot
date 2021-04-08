@@ -111,8 +111,8 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
 
                         content += "**1)** Create and post your message in a channel you have the `Manage Messages` " +
                                 "permission in.\n"
-                        content += "**2)** Type `/publish release` or `/publish update`, depending on the channel " +
-                                "that best suits your post.\n"
+                        content += "**2)** Type `/publish release`, `/publish showcase` or `/publish update`, " +
+                                "depending on the channel that best suits your post.\n"
                         content += "**3)** Use the command parameters to specify an earlier message, or to prevent " +
                                 "the bot from publishing the message to any following channels, if required.\n\n"
 
