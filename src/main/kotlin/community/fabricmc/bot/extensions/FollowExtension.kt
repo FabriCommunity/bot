@@ -17,6 +17,7 @@ import dev.kord.common.annotation.KordPreview
 import dev.kord.common.entity.Permission
 import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.behavior.execute
+import dev.kord.core.entity.Message
 import dev.kord.core.entity.channel.GuildMessageChannel
 import dev.kord.core.entity.channel.NewsChannel
 import dev.kord.core.event.guild.GuildCreateEvent
@@ -24,6 +25,7 @@ import dev.kord.core.event.guild.GuildDeleteEvent
 import dev.kord.core.event.guild.GuildUpdateEvent
 import dev.kord.rest.Image
 import org.koin.core.component.inject
+import java.net.URL
 
 @Suppress("MagicNumber")
 private val BLURPLE = Color(0x7289DA)
@@ -35,12 +37,13 @@ private val GREEN = Color(0x72DA7E)
 private val RED = Color(0xDA7272)
 
 private const val CHUNK_SIZE = 10
+private const val FILE_SIZE_LIMIT = 8_000_000  // 8 MB
 
 class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
     override val name = "follow"
 
-    val config: BotConfig by inject()
-    val data = FollowData()
+    private val config: BotConfig by inject()
+    private val data = FollowData()
 
     override suspend fun setup() {
         data.addServer(config.botGuild)
@@ -128,302 +131,23 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
 
             subCommand(::PublishArgs) {
                 name = "release"
-                description = "Publish a message to the new-releases channel."
+                description = "Publish a message to the #new-releases channel."
 
-                action {
-                    if (channel !is GuildMessageChannel) {
-                        ephemeralFollowUp("This command may only be run on a server.")
-
-                        return@action
-                    }
-
-                    if (!data.hasServer(guild!!)) {
-                        ephemeralFollowUp("This command may only be run on an allow-listed server.")
-
-                        return@action
-                    }
-
-                    val channelObj = if (arguments.message != null) {
-                        arguments.message!!.channel.asChannel() as GuildMessageChannel
-                    } else {
-                        channel as GuildMessageChannel
-                    }
-
-                    if (!hasManageMessages(channelObj)) {
-                        ephemeralFollowUp(
-                            "You don't have permission to run this command. In order to publish messages, you" +
-                                    "must have the `Manage Messages` permission on this server, or in the " +
-                                    "channel you're publishing the message from."
-                        )
-
-                        return@action
-                    }
-
-                    val message = if (arguments.message != null) {
-                        arguments.message!!
-                    } else {
-                        channelObj.getLastMessage()!!
-                    }
-
-                    val targetChannel = config.getReleasesChannel(bot)!!
-                    val webhook = ensureWebhook(targetChannel, "Showcase Publishing", logo = null)
-
-                    val sentMessage = webhook.execute(webhook.token!!) {
-                        this.avatarUrl = guild!!.getIconUrl(Image.Format.PNG)
-                        this.username = guild!!.name
-
-                        content = message.content
-
-                        message.embeds.filter { allNull(it.provider, it.video) }.forEach {
-                            embed { it.apply(this) }
-                        }
-                    }
-
-                    if (channelObj is NewsChannel && arguments.publish) {
-                        @Suppress("TooGenericExceptionCaught")
-                        try {
-                            message.publish()
-
-                            ephemeralFollowUp(
-                                "Message published to ${targetChannel.mention}. Thanks!"
-                            )
-                        } catch (e: Exception) {
-                            ephemeralFollowUp(
-                                "Message published to ${targetChannel.mention}, but the bot was unable to " +
-                                        "publish it to the following channels. Please check the bot's permissions, " +
-                                        "and try publishing it yourself!"
-                            )
-                        }
-                    } else {
-                        ephemeralFollowUp(
-                            "Message published to ${targetChannel.mention}. Thanks!"
-                        )
-                    }
-
-                    val author = if (message.webhookId != null) {
-                        "Webhook (`${message.webhookId}`)"
-                    } else {
-                        "${message.author!!.mention} (`${message.author!!.id.value}` / `${message.author!!.tag}`)"
-                    }
-
-                    logAction(
-                        "Message Published",
-
-                        "Message [published](${sentMessage.getUrl()}) to ${targetChannel.mention}\n\n" +
-
-                                "**Author:** $author\n" +
-
-                                "**Published By:** ${member!!.mention} (`${member!!.id.value}` / " +
-                                "`${member!!.asMember().tag}`)\n" +
-
-                                "**Source Channel:** ${channelObj.mention} (`${channelObj.id.value}` / " +
-                                "`#${channelObj.name})`\n" +
-
-                                "**Source Server:** ${guild!!.name} (`${guild!!.id.value}`)\n" +
-                                "**Message:** ${message.content.length} characters.",
-                        GREEN
-                    )
-                }
+                action { publishCommand(config.getReleasesChannel(bot)!!) }
             }
 
             subCommand(::PublishArgs) {
                 name = "showcase"
-                description = "Publish a message to the showcase channel."
+                description = "Publish a message to the #showcase channel."
 
-                action {
-                    if (channel !is GuildMessageChannel) {
-                        ephemeralFollowUp("This command may only be run on a server.")
-
-                        return@action
-                    }
-
-                    if (!data.hasServer(guild!!)) {
-                        ephemeralFollowUp("This command may only be run on an allow-listed server.")
-
-                        return@action
-                    }
-
-                    val channelObj = if (arguments.message != null) {
-                        arguments.message!!.channel.asChannel() as GuildMessageChannel
-                    } else {
-                        channel as GuildMessageChannel
-                    }
-
-                    if (!hasManageMessages(channelObj)) {
-                        ephemeralFollowUp(
-                            "You don't have permission to run this command. In order to publish messages, you" +
-                                    "must have the `Manage Messages` permission on this server, or in the " +
-                                    "channel you're publishing the message from."
-                        )
-
-                        return@action
-                    }
-
-                    val message = if (arguments.message != null) {
-                        arguments.message!!
-                    } else {
-                        channelObj.getLastMessage()!!
-                    }
-
-                    val targetChannel = config.getShowcaseChannel(bot)!!
-                    val webhook = ensureWebhook(targetChannel, "Showcase Publishing", logo = null)
-
-                    val sentMessage = webhook.execute(webhook.token!!) {
-                        this.avatarUrl = guild!!.getIconUrl(Image.Format.PNG)
-                        this.username = guild!!.name
-
-                        content = message.content
-
-                        message.embeds.filter { allNull(it.provider, it.video) }.forEach {
-                            embed { it.apply(this) }
-                        }
-                    }
-
-                    if (channelObj is NewsChannel && arguments.publish) {
-                        @Suppress("TooGenericExceptionCaught")
-                        try {
-                            message.publish()
-
-                            ephemeralFollowUp(
-                                "Message published to ${targetChannel.mention}. Thanks!"
-                            )
-                        } catch (e: Exception) {
-                            ephemeralFollowUp(
-                                "Message published to ${targetChannel.mention}, but the bot was unable to " +
-                                        "publish it to the following channels. Please check the bot's permissions, " +
-                                        "and try publishing it yourself!"
-                            )
-                        }
-                    } else {
-                        ephemeralFollowUp(
-                            "Message published to ${targetChannel.mention}. Thanks!"
-                        )
-                    }
-
-                    val author = if (message.webhookId != null) {
-                        "Webhook (`${message.webhookId}`)"
-                    } else {
-                        "${message.author!!.mention} (`${message.author!!.id.value}` / `${message.author!!.tag}`)"
-                    }
-
-                    logAction(
-                        "Message Published",
-
-                        "Message [published](${sentMessage.getUrl()}) to ${targetChannel.mention}\n\n" +
-
-                                "**Author:** $author\n" +
-
-                                "**Published By:** ${member!!.mention} (`${member!!.id.value}` / " +
-                                "`${member!!.asMember().tag}`)\n" +
-
-                                "**Source Channel:** ${channelObj.mention} (`${channelObj.id.value}` / " +
-                                "`#${channelObj.name})`\n" +
-
-                                "**Source Server:** ${guild!!.name} (`${guild!!.id.value}`)\n" +
-                                "**Message:** ${message.content.length} characters.",
-                        GREEN
-                    )
-                }
+                action { publishCommand(config.getShowcaseChannel(bot)!!) }
             }
 
             subCommand(::PublishArgs) {
                 name = "update"
-                description = "Publish a message to the update-releases channel."
+                description = "Publish a message to the #update-releases channel."
 
-                action {
-                    if (channel !is GuildMessageChannel) {
-                        ephemeralFollowUp("This command may only be run on a server.")
-
-                        return@action
-                    }
-
-                    if (!data.hasServer(guild!!)) {
-                        ephemeralFollowUp("This command may only be run on an allow-listed server.")
-
-                        return@action
-                    }
-
-                    val channelObj = if (arguments.message != null) {
-                        arguments.message!!.channel.asChannel() as GuildMessageChannel
-                    } else {
-                        channel as GuildMessageChannel
-                    }
-
-                    if (!hasManageMessages(channelObj)) {
-                        ephemeralFollowUp(
-                            "You don't have permission to run this command. In order to publish messages, you" +
-                                    "must have the `Manage Messages` permission on this server, or in the " +
-                                    "channel you're publishing the message from."
-                        )
-
-                        return@action
-                    }
-
-                    val message = if (arguments.message != null) {
-                        arguments.message!!
-                    } else {
-                        channelObj.getLastMessage()!!
-                    }
-
-                    val targetChannel = config.getUpdatesChannel(bot)!!
-                    val webhook = ensureWebhook(targetChannel, "Showcase Publishing", logo = null)
-
-                    val sentMessage = webhook.execute(webhook.token!!) {
-                        this.avatarUrl = guild!!.getIconUrl(Image.Format.PNG)
-                        this.username = guild!!.name
-
-                        content = message.content
-
-                        message.embeds.filter { allNull(it.provider, it.video) }.forEach {
-                            embed { it.apply(this) }
-                        }
-                    }
-
-                    if (channelObj is NewsChannel && arguments.publish) {
-                        @Suppress("TooGenericExceptionCaught")
-                        try {
-                            message.publish()
-
-                            ephemeralFollowUp(
-                                "Message published to ${targetChannel.mention}. Thanks!"
-                            )
-                        } catch (e: Exception) {
-                            ephemeralFollowUp(
-                                "Message published to ${targetChannel.mention}, but the bot was unable to " +
-                                        "publish it to the following channels. Please check the bot's permissions, " +
-                                        "and try publishing it yourself!"
-                            )
-                        }
-                    } else {
-                        ephemeralFollowUp(
-                            "Message published to ${targetChannel.mention}. Thanks!"
-                        )
-                    }
-
-                    val author = if (message.webhookId != null) {
-                        "Webhook (`${message.webhookId}`)"
-                    } else {
-                        "${message.author!!.mention} (`${message.author!!.id.value}` / `${message.author!!.tag}`)"
-                    }
-
-                    logAction(
-                        "Message Published",
-
-                        "Message [published](${sentMessage.getUrl()}) to ${targetChannel.mention}\n\n" +
-
-                                "**Author:** $author\n" +
-
-                                "**Published By:** ${member!!.mention} (`${member!!.id.value}` / " +
-                                "`${member!!.asMember().tag}`)\n" +
-
-                                "**Source Channel:** ${channelObj.mention} (`${channelObj.id.value}` / " +
-                                "`#${channelObj.name})`\n" +
-
-                                "**Source Server:** ${guild!!.name} (`${guild!!.id.value}`)\n" +
-                                "**Message:** ${message.content.length} characters.",
-                        GREEN
-                    )
-                }
+                action { publishCommand(config.getUpdatesChannel(bot)!!) }
             }
         }
 
@@ -525,9 +249,7 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
 
                 action {
                     if (!hasAdmin()) {
-                        ephemeralFollowUp(
-                            "You don't have permission to run this command."
-                        )
+                        ephemeralFollowUp("You don't have permission to run this command.")
 
                         return@action
                     }
@@ -553,6 +275,7 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
 
                         return@action
                     }
+
                     ephemeralFollowUp(
                         "**__Allowed servers: ${servers.size}__**\n\n" +
 
@@ -568,6 +291,138 @@ class FollowExtension(bot: ExtensibleBot) : KoinExtension(bot) {
     }
 
     private fun allNull(vararg objects: Any?): Boolean = objects.filterNotNull().isEmpty()
+
+    private suspend fun SlashCommandContext<out PublishArgs>.publishCommand(targetChannel: GuildMessageChannel) {
+        if (channel !is GuildMessageChannel) {
+            ephemeralFollowUp("This command may only be run on a server.")
+
+            return
+        }
+
+        if (!data.hasServer(guild!!)) {
+            ephemeralFollowUp("This command may only be run on an allow-listed server.")
+
+            return
+        }
+
+        val channelObj = if (arguments.message != null) {
+            arguments.message!!.channel.asChannel() as GuildMessageChannel
+        } else {
+            channel as GuildMessageChannel
+        }
+
+        if (!hasManageMessages(channelObj)) {
+            ephemeralFollowUp(
+                "You don't have permission to run this command. In order to publish messages, you" +
+                        "must have the `Manage Messages` permission on this server (or in the " +
+                        "channel you're publishing the message from)."
+            )
+
+            return
+        }
+
+        val message = if (arguments.message != null) {
+            arguments.message!!
+        } else {
+            channelObj.getLastMessage()!!
+        }
+
+        val (sentMessage, errors) = relayMessage(message, targetChannel)
+
+        val responseText = "Message published to ${targetChannel.mention}." +
+                if (errors != null) {
+                    "\n\n$errors"
+                } else {
+                    "Thanks!"
+                }
+
+        if (channelObj is NewsChannel && arguments.publish) {
+            @Suppress("TooGenericExceptionCaught")
+            try {
+                message.publish()
+
+                ephemeralFollowUp(responseText)
+            } catch (e: Exception) {
+                ephemeralFollowUp(
+                    responseText + "\n\n" +
+
+                            "**Note:** The bot was unable to click the \"publish to following channels\"" +
+                            "button for you. Either the message was already published, or the bot doesn't" +
+                            "have the `Send Messages` and `Manage Messages` permissions in the channel!"
+                )
+            }
+        } else {
+            ephemeralFollowUp(responseText)
+        }
+
+        val author = if (message.webhookId != null) {
+            "Webhook (`${message.webhookId}`)"
+        } else {
+            "${message.author!!.mention} (`${message.author!!.id.value}` / `${message.author!!.tag}`)"
+        }
+
+        logAction(
+            "Message Published",
+
+            "Message [published](${sentMessage.getUrl()}) to ${targetChannel.mention}\n\n" +
+
+                    "**Author:** $author\n" +
+
+                    "**Published By:** ${member!!.mention} (`${member!!.id.value}` / " +
+                    "`${member!!.asMember().tag}`)\n" +
+
+                    "**Source Channel:** ${channelObj.mention} (`${channelObj.id.value}` / " +
+                    "`#${channelObj.name})`\n" +
+
+                    "**Source Server:** ${guild!!.name} (`${guild!!.id.value}`)\n" +
+                    "**Message:** ${message.content.length} characters.",
+
+            GREEN
+        )
+    }
+
+    private suspend fun relayMessage(message: Message, target: GuildMessageChannel): Pair<Message, String?> {
+        val webhook = ensureWebhook(target, "Showcase Publishing", logo = null)
+        val guild = message.getGuild()
+
+        var skippedEmbeds = 0
+        var skippedFiles = 0
+
+        val sentMessage = webhook.execute(webhook.token!!) {
+            this.avatarUrl = guild.getIconUrl(Image.Format.PNG)
+            this.username = guild.name
+
+            content = message.content
+
+            message.embeds.forEach {
+                if (allNull(it.provider, it.video)) {
+                    embed { it.apply(this) }
+                } else {
+                    skippedEmbeds += 1
+                }
+            }
+
+            message.attachments.forEach {
+                if (it.size <= FILE_SIZE_LIMIT) {
+                    this.setFile(it.filename, URL(it.url).openStream())
+                } else {
+                    skippedFiles += 1
+                }
+            }
+        }
+
+        var error = ""
+
+        if (skippedEmbeds > 0) {
+            error += "**Skipped embeds (unable to relay):** $skippedEmbeds\n"
+        }
+
+        if (skippedFiles > 0) {
+            error += "**Skipped files (too large):** $skippedFiles\n"
+        }
+
+        return Pair(sentMessage, error.ifEmpty { null })
+    }
 
     private suspend fun logAction(title: String, description: String, colour: Color) {
         val channel = config.getLogsChannel(bot)
